@@ -24,5 +24,6 @@ export * from './ReorderBomLines'
 export * from './CalculateProductCost'
 export * from './RecalculateAffectedProducts'
 export * from './CalculateRequirementsForOrder'
+export * from './DuplicateProduct'
 
 

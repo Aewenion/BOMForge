@@ -340,6 +340,7 @@ import { UNITS_BY_DIMENSION } from '../../domain/services/UnitConverter'
 import type { CostBreakdown } from '../../domain/services/CostCalculator'
 
 const { t } = useI18n()
+const route = useRoute()
 const store = useProductsStore()
 
 const searchQuery = ref('')
@@ -375,6 +376,23 @@ const isFormValid = computed(() => {
 // Load products on mount
 onMounted(async () => {
   await store.loadProducts()
+  
+  // Handle query parameters
+  if (route.query.id) {
+    await selectProduct(route.query.id as string)
+  }
+  if (route.query.create === 'true') {
+    openCreateDialog()
+  }
+  if (route.query.edit === 'true' && route.query.id) {
+    const product = store.products.find(p => p.id === route.query.id)
+    if (product) {
+      openEditDialog(product)
+    }
+  }
+  if (route.query.template && typeof route.query.template === 'string') {
+    await loadTemplate(route.query.template)
+  }
 })
 
 // Handle search with debounce
@@ -548,6 +566,27 @@ async function uploadImage() {
 function confirmDeleteImage(imageId: string) {
   if (confirm(t('products.confirmDeleteImage'))) {
     store.removeImage(imageId)
+  }
+}
+
+// Load template
+async function loadTemplate(templateProductId: string) {
+  const templateProduct = await store.products.find(p => p.id === templateProductId) ||
+    await (async () => {
+      const { productRepository } = await import('../../infrastructure/repositories/ProductRepository')
+      return await productRepository.getById(templateProductId)
+    })()
+  
+  if (templateProduct) {
+    productForm.value = {
+      type: templateProduct.type,
+      name: `${templateProduct.name} (از قالب)`,
+      unit: templateProduct.unit,
+      dimension: templateProduct.dimension,
+      yieldQty: templateProduct.yieldQty,
+      description: templateProduct.description || ''
+    }
+    showProductDialog.value = true
   }
 }
 
