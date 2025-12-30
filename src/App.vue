@@ -13,6 +13,7 @@ import { RouterView } from 'vue-router'
         <router-link to="/">داشبورد</router-link>
         <router-link to="/materials">مواد اولیه</router-link>
         <router-link to="/products">محصولات</router-link>
+        <router-link to="/bom-editor">ویرایشگر فرمول</router-link>
         <router-link to="/settings">تنظیمات</router-link>
         <router-link to="/database-test">تست دیتابیس</router-link>
       </nav>

@@ -118,6 +118,13 @@ export class BomRepository {
   }
 
   /**
+   * Get BOM line by ID
+   */
+  async getLineById(id: string): Promise<BomLine | undefined> {
+    return await db.bomLines.get(id)
+  }
+
+  /**
    * Update a BOM line
    */
   async updateLine(id: string, updates: Partial<Omit<BomLine, 'id' | 'bomVersionId'>>): Promise<void> {

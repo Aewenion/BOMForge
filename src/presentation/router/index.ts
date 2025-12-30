@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/unit-converter-test',
       name: 'unit-converter-test',
       component: () => import('../views/UnitConverterTestView.vue')
+    },
+    {
+      path: '/bom-editor',
+      name: 'bom-editor',
+      component: () => import('../views/BomEditorView.vue')
     }
   ]
 })

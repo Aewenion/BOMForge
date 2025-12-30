@@ -13,5 +13,13 @@ export * from './DeleteProduct'
 export * from './ListProducts'
 export * from './AddProductImage'
 export * from './DeleteProductImage'
+export * from './CreateBomVersion'
+export * from './AddBomLine'
+export * from './UpdateBomLine'
+export * from './DeleteBomLine'
+export * from './SetCurrentBomVersion'
+export * from './GetBomWithLines'
+export * from './GetBomVersions'
+export * from './ReorderBomLines'
 
 

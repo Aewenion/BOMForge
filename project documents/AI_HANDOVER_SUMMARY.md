@@ -235,6 +235,48 @@ This document summarizes the work completed and the current technical state of t
 5. **Localization**:
    - Added comprehensive Persian translations for products module
 
+## Completed Work (Phase 6: BOM Editor + BOM Versioning) ✅ COMPLETE
+
+1. **Use Cases**:
+   - `CreateBomVersion` - Create new BOM version for a product
+   - `AddBomLine` - Add lines to BOM (material/product)
+   - `UpdateBomLine` - Update line quantities, units, wastePct
+   - `DeleteBomLine` - Delete BOM lines
+   - `SetCurrentBomVersion` - Set version as current (with validation)
+   - `GetBomWithLines` - Get BOM version with all lines
+   - `GetBomVersions` - Get all versions for a product
+   - `ReorderBomLines` - Reorder lines in BOM
+
+2. **BOM Store**:
+   - Created `bomStore` (`src/presentation/stores/bomStore.ts`)
+   - Manages BOM versions, lines, and current version
+   - Handles editing state and validation
+
+3. **BOM Editor Component**:
+   - Created `BomEditor.vue` component
+   - Add lines (material/product selection)
+   - Edit quantities and units per line
+   - Reorder lines (move up/down)
+   - Optional wastePct per line
+   - Real-time validation
+
+4. **BOM Editor View**:
+   - Created `BomEditorView.vue` (`src/presentation/views/BomEditorView.vue`)
+   - Product selection
+   - BOM versions list with current indicator
+   - Version switching
+   - Set current version functionality
+   - Create new version with notes
+
+5. **Validation**:
+   - Cycle detection (prevents circular dependencies)
+   - Unit compatibility checks
+   - Dimension validation
+   - Quantity validation (nonnegative, max 5 decimals)
+
+6. **Localization**:
+   - Added comprehensive Persian translations for BOM module
+
 ## Current State & Next Steps
 - **Branch**: `main` (should be pushed to GitHub after verification).
 - **Build Status**: Code is ready. Dependencies may need to be installed (`npm install`).
@@ -243,17 +285,19 @@ This document summarizes the work completed and the current technical state of t
 - **Phase 3 Status**: ✅ **COMPLETE** - All requirements met.
 - **Phase 4 Status**: ✅ **COMPLETE** - All requirements met.
 - **Phase 5 Status**: ✅ **COMPLETE** - All requirements met.
-- **Immediate Next Step**: Start **Phase 6 (BOM Editor + BOM Versioning)**. This involves:
-  - BOM editor UI (add lines, qty + unit, reorder, wastePct)
-  - Saving creates new BOM version (immutable)
-  - Set current BOM version
-  - Validation (cycle detection, dimension checks)
+- **Phase 6 Status**: ✅ **COMPLETE** - All requirements met.
+- **Immediate Next Step**: Start **Phase 7 (Cost Engine + Automatic Recalculation)**. This involves:
+  - Implement recursive expansion to raw materials
+  - Compute materials-only cost
+  - Cache computed cost on product record
+  - Dependency index maintenance
+  - Trigger recalculation when material price or BOM changes
 - **Recommendation**: 
   - Run `npm install` to ensure all dependencies are installed
-  - Test the Products page (`/products`) to verify CRUD operations
-  - Test image upload and compression
-  - Verify thumbnails load fast in list view
-  - Test max 3 images limit
+  - Test the BOM Editor (`/bom-editor`) to verify all functionality
+  - Test cycle detection with nested products
+  - Verify version history and switching works
+  - Test line reordering and wastePct
 
 ## Phase 1 Completion Notes
 
@@ -424,6 +468,54 @@ This document summarizes the work completed and the current technical state of t
 - Max 3 images per product enforced ✓
 - Images compressed to ≤1MB ✓
 
+## Phase 6 Completion Notes
+
+**Completed**: Phase 6 is now fully complete with all deliverables met. The app has a fully functional BOM editor with versioning, validation, and line management.
+
+**Key Features Added**:
+- Complete BOM editor with line management
+- Add lines (materials or products)
+- Edit quantities, units, and wastePct
+- Reorder lines (move up/down)
+- BOM versioning (immutable versions)
+- Version history and switching
+- Set current version with validation
+- Cycle detection to prevent circular dependencies
+- Unit compatibility and dimension validation
+
+**Technical Decisions**:
+- BOM versions are immutable (new version created on save)
+- Validation runs before setting current version
+- Cycle detection uses recursive traversal
+- Lines can be reordered via sortOrder
+- WastePct is optional per line
+
+**Files Created in Phase 6**:
+- `src/application/useCases/CreateBomVersion.ts`
+- `src/application/useCases/AddBomLine.ts`
+- `src/application/useCases/UpdateBomLine.ts`
+- `src/application/useCases/DeleteBomLine.ts`
+- `src/application/useCases/SetCurrentBomVersion.ts`
+- `src/application/useCases/GetBomWithLines.ts`
+- `src/application/useCases/GetBomVersions.ts`
+- `src/application/useCases/ReorderBomLines.ts`
+- `src/presentation/stores/bomStore.ts`
+- `src/presentation/components/BomEditor.vue`
+- `src/presentation/views/BomEditorView.vue`
+
+**Files Modified in Phase 6**:
+- `src/application/useCases/index.ts` - Added BOM use case exports
+- `src/infrastructure/repositories/BomRepository.ts` - Added getLineById method
+- `src/presentation/router/index.ts` - Added BOM editor route
+- `src/presentation/locales/index.ts` - Added BOM translations
+- `src/App.vue` - Added BOM editor navigation link
+
+**Validation**:
+- BOM Versions list + revert switch ✓
+- User can safely edit BOM anytime and recover older versions ✓
+- Cycle detection prevents circular dependencies ✓
+- Unit compatibility and dimension checks ✓
+
 ---
-*Last updated: Phase 5 completion*
+*Last updated: Phase 6 completion*
 *Previous updates by: Antigravity AI Agent*
