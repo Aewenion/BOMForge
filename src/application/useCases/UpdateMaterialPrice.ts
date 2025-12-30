@@ -1,5 +1,6 @@
 import { materialRepository } from '../../infrastructure/repositories/MaterialRepository'
 import { generateId } from '../../infrastructure/utils/idGenerator'
+import { recalculateAffectedProducts } from './RecalculateAffectedProducts'
 import type { MaterialPrice } from '../../domain/entities/Material'
 
 export interface UpdateMaterialPriceInput {
@@ -46,6 +47,11 @@ export async function updateMaterialPrice(
   if (!newPrice) {
     throw new Error('Failed to retrieve new price record')
   }
+
+  // Trigger recalculation for affected products (async, don't wait)
+  recalculateAffectedProducts({ materialId: input.materialId }).catch(err => {
+    console.error('Failed to recalculate affected products:', err)
+  })
 
   return {
     newPrice,

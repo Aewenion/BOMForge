@@ -6,7 +6,8 @@ import {
   deleteProduct,
   listProducts,
   addProductImage,
-  deleteProductImage
+  deleteProductImage,
+  calculateProductCost
 } from '../../application/useCases'
 import type { Product, ProductImage } from '../../domain/entities/Product'
 import { createImageUrl, revokeImageUrl } from '../../infrastructure/utils/imageCompression'
@@ -250,6 +251,20 @@ export const useProductsStore = defineStore('products', () => {
     selectedProduct.value = null
   }
 
+  async function loadCostBreakdown(productId: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const result = await calculateProductCost({ productId })
+      return result.costBreakdown
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to calculate cost'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   function clearError() {
     error.value = null
   }
@@ -275,6 +290,7 @@ export const useProductsStore = defineStore('products', () => {
     removeImage,
     getImageUrl,
     getThumbnailUrl,
+    loadCostBreakdown,
     clearSelection,
     clearError
   }

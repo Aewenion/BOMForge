@@ -1,6 +1,8 @@
 import { bomRepository } from '../../infrastructure/repositories/BomRepository'
 import { productRepository } from '../../infrastructure/repositories/ProductRepository'
 import { BomValidator } from '../../domain/services/BomValidator'
+import { recalculateAffectedProducts } from './RecalculateAffectedProducts'
+import { calculateProductCost } from './CalculateProductCost'
 
 export interface SetCurrentBomVersionInput {
   productId: string
@@ -78,6 +80,14 @@ export async function setCurrentBomVersion(
 
   // Rebuild dependency index
   await bomRepository.rebuildDependenciesForProduct(input.productId)
+
+  // Recalculate cost for this product
+  await calculateProductCost({ productId: input.productId })
+
+  // Trigger recalculation for affected products (async, don't wait)
+  recalculateAffectedProducts({ productId: input.productId }).catch(err => {
+    console.error('Failed to recalculate affected products:', err)
+  })
 
   return {
     success: true

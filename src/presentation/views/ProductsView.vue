@@ -123,6 +123,63 @@
         </div>
       </div>
 
+      <!-- Cost Breakdown Section -->
+      <div v-if="store.selectedProduct" class="cost-section">
+        <div class="section-header">
+          <h4>{{ $t('products.costBreakdown') }}</h4>
+          <button @click="loadCost" class="btn-secondary btn-sm" :disabled="loadingCost">
+            {{ loadingCost ? $t('products.loading') : $t('products.recalculate') }}
+          </button>
+        </div>
+        <div v-if="loadingCost" class="loading-cost">
+          {{ $t('products.loading') }}
+        </div>
+        <div v-else-if="costBreakdown" class="cost-content">
+        <div class="cost-summary">
+          <div class="total-cost">
+            <span class="label">{{ $t('products.totalCost') }}:</span>
+            <span class="value">{{ formatPrice(costBreakdown.totalCost) }}</span>
+          </div>
+          <div class="cost-per-unit">
+            <span class="label">{{ $t('products.costPerUnit') }}:</span>
+            <span class="value">
+              {{ formatPrice(Math.round(costBreakdown.totalCost / (store.selectedProduct?.yieldQty || 1))) }}
+              / {{ store.selectedProduct?.unit }}
+            </span>
+          </div>
+        </div>
+        <div v-if="costBreakdown.requirements.length > 0" class="cost-details">
+          <h5>{{ $t('products.materialRequirements') }}</h5>
+          <div class="requirements-list">
+            <div
+              v-for="req in costBreakdown.requirements"
+              :key="req.materialId"
+              class="requirement-item"
+            >
+              <div class="requirement-info">
+                <span class="material-name">{{ req.materialName }}</span>
+                <span class="requirement-qty">
+                  {{ formatQuantity(req.totalQty) }} {{ req.unit }}
+                </span>
+              </div>
+              <div class="requirement-cost">
+                {{ formatPrice(req.costContribution) }}
+                <span class="cost-per-unit">
+                  ({{ formatPrice(req.pricePerUnit) }} / {{ req.unit }})
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div v-else class="no-cost">
+          {{ $t('products.noCostData') }}
+          <button @click="loadCost" class="btn-secondary btn-sm" style="margin-top: 0.5rem;">
+            {{ $t('products.calculateCost') }}
+          </button>
+        </div>
+      </div>
+
       <!-- Images Section -->
       <div class="images-section">
         <div class="images-header">
@@ -280,6 +337,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductsStore } from '../stores/productsStore'
 import { UNITS_BY_DIMENSION } from '../../domain/services/UnitConverter'
+import type { CostBreakdown } from '../../domain/services/CostCalculator'
 
 const { t } = useI18n()
 const store = useProductsStore()
@@ -294,6 +352,8 @@ const selectedFile = ref<File | null>(null)
 const imagePreview = ref<string | null>(null)
 const uploading = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const costBreakdown = ref<CostBreakdown | null>(null)
+const loadingCost = ref(false)
 
 const productForm = ref({
   type: 'final' as 'middle' | 'final',
@@ -336,7 +396,36 @@ function handleFilter() {
 // Select product
 async function selectProduct(id: string) {
   await store.selectProduct(id)
+  // Show cached cost if available, then load fresh
+  if (store.selectedProduct?.computedCostMaterialsOnly !== undefined) {
+    // We'll load fresh cost, but could show cached value first
+  }
+  await loadCost()
 }
+
+// Load cost breakdown
+async function loadCost() {
+  if (!store.selectedProduct) return
+  
+  loadingCost.value = true
+  try {
+    costBreakdown.value = await store.loadCostBreakdown(store.selectedProduct.id)
+  } catch (err) {
+    // Error handled by store
+    costBreakdown.value = null
+  } finally {
+    loadingCost.value = false
+  }
+}
+
+// Watch for product selection changes
+watch(() => store.selectedProduct, (newProduct) => {
+  if (newProduct) {
+    loadCost()
+  } else {
+    costBreakdown.value = null
+  }
+})
 
 // Open create dialog
 function openCreateDialog() {
@@ -572,6 +661,101 @@ watch(() => productForm.value.dimension, (newDimension) => {
 
 .product-detail {
   padding: 1.5rem;
+}
+
+.cost-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cost-summary {
+  padding: 1rem;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.total-cost,
+.cost-per-unit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.total-cost .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.cost-details {
+  margin-top: 1rem;
+}
+
+.requirements-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.requirement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 0.5rem;
+}
+
+.requirement-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.material-name {
+  font-weight: 500;
+}
+
+.requirement-qty {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.requirement-cost {
+  text-align: left;
+  font-weight: 600;
+}
+
+.cost-per-unit {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: normal;
+}
+
+.cost-content {
+  /* Container for cost data */
+}
+
+.loading-cost {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.no-cost {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
 }
 
 .images-section {

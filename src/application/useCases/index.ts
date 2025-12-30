@@ -21,5 +21,7 @@ export * from './SetCurrentBomVersion'
 export * from './GetBomWithLines'
 export * from './GetBomVersions'
 export * from './ReorderBomLines'
+export * from './CalculateProductCost'
+export * from './RecalculateAffectedProducts'
 
 

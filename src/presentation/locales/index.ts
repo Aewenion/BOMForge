@@ -78,7 +78,14 @@ const messages = {
       selectImage: 'انتخاب تصویر',
       imageHint: 'حداکثر 3 تصویر، هر تصویر حداکثر 1 مگابایت',
       upload: 'آپلود',
-      uploading: 'در حال آپلود...'
+      uploading: 'در حال آپلود...',
+      costBreakdown: 'تجزیه هزینه',
+      recalculate: 'محاسبه مجدد',
+      totalCost: 'هزینه کل',
+      costPerUnit: 'هزینه به ازای واحد',
+      materialRequirements: 'نیازمندی‌های مواد اولیه',
+      noCostData: 'اطلاعات هزینه در دسترس نیست',
+      calculateCost: 'محاسبه هزینه'
     },
     bom: {
       selectProduct: 'انتخاب محصول',
