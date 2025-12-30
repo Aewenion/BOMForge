@@ -100,3 +100,4 @@ export function formatLargeNumber(value: number, maxDecimals: number = 2): strin
   return value.toFixed(maxDecimals)
 }
 
+
