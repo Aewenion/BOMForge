@@ -38,6 +38,11 @@ const router = createRouter({
       path: '/bom-editor',
       name: 'bom-editor',
       component: () => import('../views/BomEditorView.vue')
+    },
+    {
+      path: '/calculator',
+      name: 'calculator',
+      component: () => import('../views/CalculatorView.vue')
     }
   ]
 })
