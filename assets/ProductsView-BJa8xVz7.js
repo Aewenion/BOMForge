@@ -1,0 +1,1 @@
+import{p as c,b as o,e as s,t as e,m as a}from"./index-Cxd29LhL.js";const r={},d={class:"products-view"},n={class:"glass-card"},i={class:"btn-primary"};function _(t,l){return a(),o("div",d,[s("div",n,[s("h2",null,e(t.$t("products.title")),1),s("button",i,e(t.$t("products.addNew")),1)])])}const u=c(r,[["render",_],["__scopeId","data-v-27a07c94"]]);export{u as default};
