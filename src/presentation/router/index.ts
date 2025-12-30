@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/database-test',
       name: 'database-test',
       component: () => import('../views/DatabaseTestView.vue')
+    },
+    {
+      path: '/unit-converter-test',
+      name: 'unit-converter-test',
+      component: () => import('../views/UnitConverterTestView.vue')
     }
   ]
 })
