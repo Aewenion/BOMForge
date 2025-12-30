@@ -7,5 +7,11 @@ export * from './DeleteMaterial'
 export * from './ListMaterials'
 export * from './UpdateMaterialPrice'
 export * from './GetMaterialPriceHistory'
+export * from './CreateProduct'
+export * from './UpdateProduct'
+export * from './DeleteProduct'
+export * from './ListProducts'
+export * from './AddProductImage'
+export * from './DeleteProductImage'
 
 
