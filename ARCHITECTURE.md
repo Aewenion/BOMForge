@@ -123,3 +123,4 @@ presentation → infrastructure → domain
 *This document should be updated as the architecture evolves.*
 
 
+
