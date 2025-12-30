@@ -25,5 +25,7 @@ export * from './CalculateProductCost'
 export * from './RecalculateAffectedProducts'
 export * from './CalculateRequirementsForOrder'
 export * from './DuplicateProduct'
+export * from './ExportDatabase'
+export * from './ImportDatabase'
 
 

@@ -62,6 +62,40 @@
           </button>
         </div>
       </section>
+
+      <section class="settings-section">
+        <h3>{{ $t('settings.backupRestore') }}</h3>
+        <div class="backup-actions">
+          <button 
+            class="btn-primary" 
+            @click="exportBackup"
+            :disabled="isExporting"
+          >
+            {{ isExporting ? $t('settings.exporting') : $t('settings.exportBackup') }}
+          </button>
+          <label class="btn-secondary file-input-label">
+            {{ $t('settings.importBackup') }}
+            <input
+              type="file"
+              accept=".json"
+              @change="handleImportFile"
+              style="display: none"
+              ref="importFileInput"
+            />
+          </label>
+        </div>
+        <div v-if="importResult" class="import-result" :class="{ 'import-success': importResult.success, 'import-error': !importResult.success }">
+          <p v-if="importResult.success">
+            {{ t('settings.importSuccess', { materials: importResult.imported.materials, products: importResult.imported.products, bomVersions: importResult.imported.bomVersions }) }}
+          </p>
+          <p v-else>
+            {{ $t('settings.importError') }}
+          </p>
+          <ul v-if="importResult.errors.length > 0" class="error-list">
+            <li v-for="error in importResult.errors" :key="error">{{ error }}</li>
+          </ul>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -69,6 +103,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { exportDatabaseUseCase, importDatabaseUseCase } from '../../application/useCases'
+import { downloadExport, readImportFile } from '../../infrastructure/utils/exportImport'
+import type { ImportDatabaseOutput } from '../../application/useCases/ImportDatabase'
 
 const { t } = useI18n()
 
@@ -80,6 +117,9 @@ const storageUsagePercent = ref(0)
 const isLoading = ref(false)
 const isOnline = ref(navigator.onLine)
 const updateAvailable = ref(false)
+const isExporting = ref(false)
+const importFileInput = ref<HTMLInputElement | null>(null)
+const importResult = ref<ImportDatabaseOutput | null>(null)
 
 // Get app version from Vite define
 onMounted(async () => {
@@ -163,6 +203,64 @@ async function updateApp() {
     if (registration && registration.waiting) {
       registration.waiting.postMessage({ type: 'SKIP_WAITING' })
       window.location.reload()
+    }
+  }
+}
+
+async function exportBackup() {
+  isExporting.value = true
+  importResult.value = null
+  try {
+    const result = await exportDatabaseUseCase({ includeBlobs: true })
+    const data = JSON.parse(result.data)
+    const filename = `bomforge-backup-${new Date().toISOString().split('T')[0]}.json`
+    downloadExport(data, filename)
+  } catch (err) {
+    console.error('Export failed:', err)
+    alert(t('settings.exportError'))
+  } finally {
+    isExporting.value = false
+  }
+}
+
+async function handleImportFile(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  importResult.value = null
+  isLoading.value = true
+
+  try {
+    const exportData = await readImportFile(file)
+    const result = await importDatabaseUseCase({
+      data: JSON.stringify(exportData),
+      merge: false // Overwrite for now
+    })
+    importResult.value = result
+    
+    if (result.imported.success) {
+      // Refresh storage after import
+      await refreshStorage()
+      // Reload page to show imported data
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    }
+  } catch (err) {
+    importResult.value = {
+      imported: {
+        materials: 0,
+        products: 0,
+        bomVersions: 0,
+        success: false
+      },
+      errors: [err instanceof Error ? err.message : t('settings.importError')]
+    }
+  } finally {
+    isLoading.value = false
+    if (importFileInput.value) {
+      importFileInput.value.value = ''
     }
   }
 }
@@ -274,5 +372,46 @@ async function updateApp() {
 
 .update-banner .btn-primary {
   width: 100%;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.file-input-label {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.import-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.import-result.import-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid #10b981;
+}
+
+.import-result.import-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+}
+
+.import-result p {
+  margin: 0 0 0.5rem 0;
+}
+
+.error-list {
+  margin: 0.5rem 0 0 0;
+  padding-right: 1.5rem;
+  list-style: disc;
+}
+
+.error-list li {
+  margin: 0.25rem 0;
 }
 </style>

@@ -21,6 +21,13 @@ export interface ExportData {
 }
 
 /**
+ * Export all data to JSON format (alias for compatibility)
+ */
+export async function exportDatabase(includeBlobs: boolean = true): Promise<ExportData> {
+  return await exportData()
+}
+
+/**
  * Export all data to JSON format
  */
 export async function exportData(): Promise<ExportData> {
@@ -58,6 +65,37 @@ export async function exportData(): Promise<ExportData> {
       bomLines,
       productDependencies
     }
+  }
+}
+
+/**
+ * Import data from JSON format (enhanced with return values)
+ */
+export async function importDatabase(
+  data: ExportData,
+  merge: boolean = false
+): Promise<{ materials: number; products: number; bomVersions: number; errors: string[] }> {
+  const errors: string[] = []
+  let materialsCount = 0
+  let productsCount = 0
+  let bomVersionsCount = 0
+
+  try {
+    await importData(data, merge)
+    
+    // Count imported items
+    materialsCount = data.data?.materials?.length || 0
+    productsCount = data.data?.products?.length || 0
+    bomVersionsCount = data.data?.bomVersions?.length || 0
+  } catch (err) {
+    errors.push(err instanceof Error ? err.message : 'Import failed')
+  }
+
+  return {
+    materials: materialsCount,
+    products: productsCount,
+    bomVersions: bomVersionsCount,
+    errors
   }
 }
 

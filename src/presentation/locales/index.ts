@@ -201,7 +201,15 @@ const messages = {
       online: 'آنلاین',
       offline: 'آفلاین',
       updateAvailable: 'به‌روزرسانی جدید موجود است',
-      updateNow: 'به‌روزرسانی کن'
+      updateNow: 'به‌روزرسانی کن',
+      backupRestore: 'پشتیبان‌گیری و بازیابی',
+      exportBackup: 'خروجی پشتیبان',
+      importing: 'در حال وارد کردن...',
+      exporting: 'در حال خروجی...',
+      importBackup: 'وارد کردن پشتیبان',
+      importSuccess: 'وارد کردن موفق: {materials} ماده اولیه، {products} محصول، {bomVersions} نسخه BOM',
+      importError: 'خطا در وارد کردن پشتیبان',
+      exportError: 'خطا در خروجی پشتیبان'
     }
   }
 }
