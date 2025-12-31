@@ -18,6 +18,9 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       manifest: {
         name: 'BOMForge',
         short_name: 'BOMForge',

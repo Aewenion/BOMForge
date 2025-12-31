@@ -167,7 +167,7 @@ export class BomValidator {
   /**
    * Validate all BOM lines
    */
-  static validateBomLines(
+  static async validateBomLines(
     bomLines: BomLine[],
     getInput: (type: 'material' | 'product', id: string) => Promise<Material | Product | undefined>
   ): Promise<{ valid: boolean; errors: string[] }> {
@@ -198,6 +198,7 @@ export class BomValidator {
     }
   }
 }
+
 
 
 

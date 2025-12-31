@@ -218,3 +218,4 @@ npm run preview
 - [Pinia Documentation](https://pinia.vuejs.org/)
 - [Vite PWA Plugin](https://vite-pwa-org.netlify.app/)
 
+

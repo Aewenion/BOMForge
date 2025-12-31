@@ -48,126 +48,40 @@
           {{ $t('settings.refresh') }}
         </button>
       </section>
-
-      <section class="settings-section">
-        <h3>{{ $t('settings.pwa') }}</h3>
-        <div class="info-row">
-          <span class="info-label">{{ $t('settings.offlineMode') }}:</span>
-          <span class="info-value">{{ isOnline ? $t('settings.online') : $t('settings.offline') }}</span>
-        </div>
-        <div v-if="updateAvailable" class="update-banner">
-          <p>{{ $t('settings.updateAvailable') }}</p>
-          <button class="btn-primary" @click="updateApp">
-            {{ $t('settings.updateNow') }}
-          </button>
-        </div>
-      </section>
-
-      <section class="settings-section">
-        <h3>{{ $t('settings.backupRestore') }}</h3>
-        <div class="backup-actions">
-          <button 
-            class="btn-primary" 
-            @click="exportBackup"
-            :disabled="isExporting"
-          >
-            {{ isExporting ? $t('settings.exporting') : $t('settings.exportBackup') }}
-          </button>
-          <label class="btn-secondary file-input-label">
-            {{ $t('settings.importBackup') }}
-            <input
-              type="file"
-              accept=".json"
-              @change="handleImportFile"
-              style="display: none"
-              ref="importFileInput"
-            />
-          </label>
-        </div>
-        <div v-if="importResult" class="import-result" :class="{ 'import-success': importResult.success, 'import-error': !importResult.success }">
-          <p v-if="importResult.success">
-            {{ t('settings.importSuccess', { materials: importResult.imported.materials, products: importResult.imported.products, bomVersions: importResult.imported.bomVersions }) }}
-          </p>
-          <p v-else>
-            {{ $t('settings.importError') }}
-          </p>
-          <ul v-if="importResult.errors.length > 0" class="error-list">
-            <li v-for="error in importResult.errors" :key="error">{{ error }}</li>
-          </ul>
-        </div>
-      </section>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { exportDatabaseUseCase, importDatabaseUseCase } from '../../application/useCases'
-import { downloadExport, readImportFile } from '../../infrastructure/utils/exportImport'
-import type { ImportDatabaseOutput } from '../../application/useCases/ImportDatabase'
+import { ref, onMounted, computed } from 'vue'
 
-const { t } = useI18n()
+const appVersion = import.meta.env.__APP_VERSION__ || '0.1.0'
+const buildDate = new Date().toLocaleDateString('fa-IR')
 
-const appVersion = ref('0.1.0')
-const buildDate = ref('')
-const storageUsed = ref(0)
-const storageQuota = ref(0)
-const storageUsagePercent = ref(0)
-const isLoading = ref(false)
-const isOnline = ref(navigator.onLine)
-const updateAvailable = ref(false)
-const isExporting = ref(false)
-const importFileInput = ref<HTMLInputElement | null>(null)
-const importResult = ref<ImportDatabaseOutput | null>(null)
+const storageUsed = ref<number>(0)
+const storageQuota = ref<number>(0)
+const isLoading = ref<boolean>(false)
 
-// Get app version from Vite define
-onMounted(async () => {
-  // Version injected at build time from package.json
-  appVersion.value = import.meta.env.__APP_VERSION__ || '0.1.0'
-  
-  buildDate.value = new Date().toLocaleDateString('fa-IR')
-  await refreshStorage()
-  checkForUpdates()
-  
-  // Listen for online/offline events
-  window.addEventListener('online', handleOnline)
-  window.addEventListener('offline', handleOffline)
-  
-  // Listen for service worker updates
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('controllerchange', checkForUpdates)
-  }
+const storageUsagePercent = computed(() => {
+  if (storageQuota.value === 0) return 0
+  return Math.round((storageUsed.value / storageQuota.value) * 100)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('online', handleOnline)
-  window.removeEventListener('offline', handleOffline)
-})
-
-function handleOnline() {
-  isOnline.value = true
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
-function handleOffline() {
-  isOnline.value = false
-}
-
-async function refreshStorage() {
+const refreshStorage = async () => {
   isLoading.value = true
   try {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       const estimate = await navigator.storage.estimate()
       storageUsed.value = estimate.usage || 0
       storageQuota.value = estimate.quota || 0
-      storageUsagePercent.value = storageQuota.value > 0 
-        ? Math.round((storageUsed.value / storageQuota.value) * 100) 
-        : 0
-    } else {
-      // Fallback for browsers that don't support storage estimate
-      storageUsed.value = 0
-      storageQuota.value = 0
-      storageUsagePercent.value = 0
     }
   } catch (error) {
     console.error('Error getting storage estimate:', error)
@@ -176,94 +90,9 @@ async function refreshStorage() {
   }
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
-}
-
-function checkForUpdates() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistration().then((registration) => {
-      if (registration) {
-        registration.addEventListener('updatefound', () => {
-          updateAvailable.value = true
-        })
-        registration.update()
-      }
-    })
-  }
-}
-
-async function updateApp() {
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.getRegistration()
-    if (registration && registration.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-      window.location.reload()
-    }
-  }
-}
-
-async function exportBackup() {
-  isExporting.value = true
-  importResult.value = null
-  try {
-    const result = await exportDatabaseUseCase({ includeBlobs: true })
-    const data = JSON.parse(result.data)
-    const filename = `bomforge-backup-${new Date().toISOString().split('T')[0]}.json`
-    downloadExport(data, filename)
-  } catch (err) {
-    console.error('Export failed:', err)
-    alert(t('settings.exportError'))
-  } finally {
-    isExporting.value = false
-  }
-}
-
-async function handleImportFile(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  importResult.value = null
-  isLoading.value = true
-
-  try {
-    const exportData = await readImportFile(file)
-    const result = await importDatabaseUseCase({
-      data: JSON.stringify(exportData),
-      merge: false // Overwrite for now
-    })
-    importResult.value = result
-    
-    if (result.imported.success) {
-      // Refresh storage after import
-      await refreshStorage()
-      // Reload page to show imported data
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
-    }
-  } catch (err) {
-    importResult.value = {
-      imported: {
-        materials: 0,
-        products: 0,
-        bomVersions: 0,
-        success: false
-      },
-      errors: [err instanceof Error ? err.message : t('settings.importError')]
-    }
-  } finally {
-    isLoading.value = false
-    if (importFileInput.value) {
-      importFileInput.value.value = ''
-    }
-  }
-}
+onMounted(() => {
+  refreshStorage()
+})
 </script>
 
 <style scoped>
@@ -272,31 +101,33 @@ async function handleImportFile(event: Event) {
   gap: 2rem;
 }
 
-.settings-section {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--glass-border);
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.settings-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+.settings-section {
+  margin-top: 2rem;
+}
+
+.settings-section:first-of-type {
+  margin-top: 0;
 }
 
 .settings-section h3 {
-  margin-top: 0;
   margin-bottom: 1rem;
   font-size: 1.2rem;
-  color: var(--primary);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .info-row:last-child {
@@ -304,19 +135,18 @@ async function handleImportFile(event: Event) {
 }
 
 .info-label {
-  font-weight: 500;
-  color: var(--text-main);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .info-value {
-  color: var(--text-main);
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
 }
 
 .storage-bar {
   width: 100%;
   height: 1rem;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 0.5rem;
   overflow: hidden;
   margin: 1rem 0;
@@ -324,94 +154,36 @@ async function handleImportFile(event: Event) {
 
 .storage-bar-fill {
   height: 100%;
-  background: var(--primary);
-  transition: width 0.3s ease, background 0.3s ease;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.3s ease;
 }
 
 .storage-bar-fill.storage-warning {
-  background: #f59e0b;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
 }
 
 .storage-bar-fill.storage-danger {
-  background: #ef4444;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
 .btn-secondary {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-main);
-  border: 1px solid var(--glass-border);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 500;
   margin-top: 1rem;
-  transition: background 0.2s;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-.update-banner {
-  background: rgba(37, 99, 235, 0.1);
-  border: 1px solid var(--primary);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-.update-banner p {
-  margin: 0 0 0.75rem 0;
-}
-
-.update-banner .btn-primary {
-  width: 100%;
-}
-
-.backup-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.file-input-label {
-  cursor: pointer;
-  display: inline-block;
-}
-
-.import-result {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 0.5rem;
-}
-
-.import-result.import-success {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid #10b981;
-}
-
-.import-result.import-error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-}
-
-.import-result p {
-  margin: 0 0 0.5rem 0;
-}
-
-.error-list {
-  margin: 0.5rem 0 0 0;
-  padding-right: 1.5rem;
-  list-style: disc;
-}
-
-.error-list li {
-  margin: 0.25rem 0;
-}
 </style>
+
