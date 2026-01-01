@@ -17,7 +17,7 @@
       <div class="calculator-form">
         <div class="form-group">
           <label>{{ $t('calculator.selectProduct') }}</label>
-          <select v-model="selectedProductId" class="form-input" @change="onProductChange">
+          <select v-model="selectedProductId" class="form-select" @change="onProductChange">
             <option value="">{{ $t('calculator.select') }}</option>
             <option
               v-for="product in products"
@@ -40,7 +40,7 @@
               class="form-input"
               :placeholder="$t('calculator.quantityPlaceholder')"
             />
-            <select v-model="targetUnit" class="form-input unit-select">
+            <select v-model="targetUnit" class="form-select unit-select">
               <option
                 v-for="unit in availableUnits"
                 :key="unit"
@@ -155,7 +155,7 @@ const error = ref('')
 const products = computed(() => productsStore.products)
 const selectedProduct = computed(() => {
   if (!selectedProductId.value) return null
-  return products.find(p => p.id === selectedProductId.value) || null
+  return products.value.find(p => p.id === selectedProductId.value) || null
 })
 
 const availableUnits = computed(() => {
@@ -262,9 +262,7 @@ function formatQuantity(qty: number): string {
   flex: 1;
 }
 
-.unit-select {
-  min-width: 120px;
-}
+/* .unit-select replaced by .form-select */
 
 .form-actions {
   display: flex;
@@ -352,35 +350,13 @@ tfoot {
   color: #6b7280;
 }
 
-.loading-message {
-  text-align: center;
-  padding: 2rem;
-}
+/* .loading-message moved to global */
 
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* .error-message moved to global */
 
-.form-hint {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  display: block;
-}
+/* .form-hint moved to global */
 
-/* Reuse styles */
-.form-group,
-.form-input,
-.btn-primary,
-.btn-secondary,
-.btn-close {
-  /* Styles inherited */
-}
+/* Reuse styles moved to global */
 </style>
 
 

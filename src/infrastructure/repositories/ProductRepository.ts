@@ -13,7 +13,6 @@ export class ProductRepository {
     const now = new Date()
     await db.products.add({
       ...product,
-      images: [], // Images stored separately
       createdAt: dateToTimestamp(now),
       updatedAt: dateToTimestamp(now)
     })
@@ -115,7 +114,10 @@ export class ProductRepository {
     const imagesByProductId = new Map<string, ProductImage[]>()
     for (const image of allImages) {
       const existing = imagesByProductId.get(image.productId) || []
-      existing.push(image)
+      existing.push({
+        ...image,
+        createdAt: timestampToDate(image.createdAt)
+      })
       imagesByProductId.set(image.productId, existing)
     }
 

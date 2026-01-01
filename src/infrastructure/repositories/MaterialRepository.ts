@@ -1,5 +1,11 @@
 import { db } from '../database/Database'
 import type { Material, MaterialPrice } from '../../domain/entities/Material'
+import { 
+  dateToTimestamp, 
+  timestampToDate, 
+  dateToTimestampOptional, 
+  timestampToDateOptional 
+} from '../utils/dateConverter'
 
 /**
  * Repository for Material and MaterialPrice entities
@@ -67,9 +73,14 @@ export class MaterialRepository {
    */
   async searchByName(query: string): Promise<Material[]> {
     const lowerQuery = query.toLowerCase()
-    return await db.materials
+    const materials = await db.materials
       .filter(m => m.name.toLowerCase().includes(lowerQuery))
       .toArray()
+    return materials.map(m => ({
+      ...m,
+      createdAt: timestampToDate(m.createdAt),
+      updatedAt: timestampToDate(m.updatedAt)
+    }))
   }
 
   // MaterialPrice methods

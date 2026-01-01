@@ -4,7 +4,7 @@
     <div v-if="!selectedProductId" class="glass-card">
       <h2>{{ $t('bom.selectProduct') }}</h2>
       <div class="product-selector">
-        <select v-model="productSelect" class="form-input" @change="selectProduct">
+        <select v-model="productSelect" class="form-select" @change="selectProduct">
           <option value="">{{ $t('bom.selectProduct') }}</option>
           <option
             v-for="product in productsStore.products"
@@ -74,7 +74,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="no-versions">
+        <div v-else class="empty-state">
           {{ $t('bom.noVersions') }}
         </div>
       </div>
@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBomStore } from '../stores/bomStore'
 import { useProductsStore } from '../stores/productsStore'
@@ -235,13 +235,7 @@ function formatDate(date: Date): string {
   margin-top: 1rem;
 }
 
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-  font-family: inherit;
-}
+/* .form-input moved to global */
 
 .header-section {
   display: flex;
@@ -318,29 +312,11 @@ function formatDate(date: Date): string {
   margin-bottom: 1rem;
 }
 
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-}
+/* .btn-sm moved to global */
 
-.no-versions {
-  text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-}
+/* .no-versions replaced by .empty-state */
 
-/* Reuse styles from MaterialsView */
-.error-message,
-.dialog-overlay,
-.dialog,
-.dialog-header,
-.dialog-body,
-.dialog-footer,
-.btn-primary,
-.btn-secondary,
-.btn-close {
-  /* Styles inherited */
-}
+/* Reuse styles moved to global */
 </style>
 
 

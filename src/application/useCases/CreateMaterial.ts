@@ -6,6 +6,7 @@ export interface CreateMaterialInput {
   name: string
   unit: string
   dimension: 'mass' | 'volume' | 'count'
+  initialPrice?: number
 }
 
 export interface CreateMaterialOutput {
@@ -40,6 +41,17 @@ export async function createMaterial(
   }
 
   const materialId = await materialRepository.create(material)
+
+  // If initial price is provided, add it
+  if (input.initialPrice !== undefined && input.initialPrice >= 0) {
+    await materialRepository.addPrice({
+      id: generateId('price'),
+      materialId: materialId,
+      priceToman: input.initialPrice,
+      effectiveFrom: new Date()
+    })
+  }
+
   const createdMaterial = await materialRepository.getById(materialId)
 
   if (!createdMaterial) {

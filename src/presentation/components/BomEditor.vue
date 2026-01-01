@@ -20,7 +20,7 @@
         <div class="line-content">
           <div class="line-input-info">
             <span class="input-name">{{ getInputName(line) }}</span>
-            <span class="input-type-badge">{{ line.inputType === 'material' ? $t('bom.material') : $t('bom.product') }}</span>
+            <span class="badge">{{ line.inputType === 'material' ? $t('bom.material') : $t('bom.product') }}</span>
           </div>
           <div class="line-quantity">
             <input
@@ -28,12 +28,12 @@
               type="number"
               step="0.00001"
               min="0"
-              class="qty-input"
+              class="form-input"
               @blur="updateLine(line.id, { qty: line.qty })"
             />
             <select
               v-model="line.unit"
-              class="unit-select"
+              class="form-select"
               @change="updateLine(line.id, { unit: line.unit })"
             >
               <option
@@ -53,7 +53,8 @@
               step="0.1"
               min="0"
               max="100"
-              class="waste-input"
+              class="form-input"
+              style="width: 100px"
               @blur="updateLine(line.id, { wastePct: line.wastePct })"
             />
             <span>%</span>
@@ -87,7 +88,7 @@
       </div>
     </div>
 
-    <div v-else class="empty-bom">
+    <div v-else class="empty-state">
       {{ $t('bom.noLines') }}
     </div>
 
@@ -294,7 +295,6 @@ async function removeLine(lineId: string) {
 }
 
 async function moveLineUp(index: number) {
-  const line = lines.value[index]
   const newOrder = lines.value.map((l, i) => ({
     lineId: l.id,
     sortOrder: i === index ? index - 1 : i === index - 1 ? index : i
@@ -303,7 +303,6 @@ async function moveLineUp(index: number) {
 }
 
 async function moveLineDown(index: number) {
-  const line = lines.value[index]
   const newOrder = lines.value.map((l, i) => ({
     lineId: l.id,
     sortOrder: i === index ? index + 1 : i === index + 1 ? index : i
@@ -368,31 +367,16 @@ async function moveLineDown(index: number) {
   font-weight: 500;
 }
 
-.input-type-badge {
-  padding: 0.25rem 0.5rem;
-  background: rgba(37, 99, 235, 0.1);
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-}
+/* .input-type-badge replaced by .badge */
 
 .line-quantity {
   display: flex;
   gap: 0.5rem;
 }
 
-.qty-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-}
+/* .qty-input replaced by .form-input */
 
-.unit-select {
-  padding: 0.5rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-  min-width: 100px;
-}
+/* .unit-select replaced by .form-select */
 
 .line-waste {
   display: flex;
@@ -400,12 +384,7 @@ async function moveLineDown(index: number) {
   align-items: center;
 }
 
-.waste-input {
-  width: 80px;
-  padding: 0.5rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-}
+/* .waste-input replaced by .form-input with inline width */
 
 .line-actions {
   display: flex;
@@ -413,26 +392,8 @@ async function moveLineDown(index: number) {
   align-items: center;
 }
 
-.empty-bom {
-  text-align: center;
-  padding: 3rem;
-  color: #6b7280;
-}
+/* .empty-bom replaced by .empty-state */
 
-/* Reuse dialog styles from MaterialsView */
-.dialog-overlay,
-.dialog,
-.dialog-header,
-.dialog-body,
-.dialog-footer,
-.form-group,
-.form-input,
-.btn-primary,
-.btn-secondary,
-.btn-icon,
-.btn-danger,
-.btn-close {
-  /* Styles inherited */
-}
+/* Reuse dialog styles moved to global */
 </style>
 

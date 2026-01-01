@@ -24,7 +24,6 @@ export async function exportDatabaseUseCase(
   return {
     data: JSON.stringify(data, null, 2),
     timestamp: new Date(),
-    version: import.meta.env.__APP_VERSION__ || '1.0.0'
+    version: __APP_VERSION__ || '1.0.0'
   }
 }
-

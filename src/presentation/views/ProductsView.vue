@@ -18,7 +18,7 @@
           class="search-input"
           @input="handleSearch"
         />
-        <select v-model="filterType" class="filter-select" @change="handleFilter">
+        <select v-model="filterType" class="form-select" @change="handleFilter">
           <option value="">{{ $t('products.allTypes') }}</option>
           <option value="middle">{{ $t('products.middle') }}</option>
           <option value="final">{{ $t('products.final') }}</option>
@@ -131,7 +131,7 @@
             {{ loadingCost ? $t('products.loading') : $t('products.recalculate') }}
           </button>
         </div>
-        <div v-if="loadingCost" class="loading-cost">
+        <div v-if="loadingCost" class="loading-message">
           {{ $t('products.loading') }}
         </div>
         <div v-else-if="costBreakdown" class="cost-content">
@@ -172,8 +172,8 @@
           </div>
         </div>
         </div>
-        <div v-else class="no-cost">
-          {{ $t('products.noCostData') }}
+        <div v-else class="empty-state">
+          <p>{{ $t('products.noCostData') }}</p>
           <button @click="loadCost" class="btn-secondary btn-sm" style="margin-top: 0.5rem;">
             {{ $t('products.calculateCost') }}
           </button>
@@ -237,10 +237,11 @@
             />
           </div>
           <div class="form-group">
-            <label>{{ $t('products.type') }}</label>
-            <select v-model="productForm.type" class="form-input">
-              <option value="middle">{{ $t('products.middle') }}</option>
-              <option value="final">{{ $t('products.final') }}</option>
+            <label>{{ $t('products.dimension') }}</label>
+            <select v-model="productForm.dimension" class="form-input">
+              <option value="mass">{{ $t('products.mass') }}</option>
+              <option value="volume">{{ $t('products.volume') }}</option>
+              <option value="count">{{ $t('products.count') }}</option>
             </select>
           </div>
           <div class="form-group">
@@ -256,11 +257,10 @@
             </select>
           </div>
           <div class="form-group">
-            <label>{{ $t('products.dimension') }}</label>
-            <select v-model="productForm.dimension" class="form-input">
-              <option value="mass">{{ $t('products.mass') }}</option>
-              <option value="volume">{{ $t('products.volume') }}</option>
-              <option value="count">{{ $t('products.count') }}</option>
+            <label>{{ $t('products.type') }}</label>
+            <select v-model="productForm.type" class="form-input">
+              <option value="middle">{{ $t('products.middle') }}</option>
+              <option value="final">{{ $t('products.final') }}</option>
             </select>
           </div>
           <div class="form-group">
@@ -335,6 +335,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useProductsStore } from '../stores/productsStore'
 import { UNITS_BY_DIMENSION } from '../../domain/services/UnitConverter'
 import type { CostBreakdown } from '../../domain/services/CostCalculator'
@@ -597,6 +598,17 @@ watch(() => productForm.value.dimension, (newDimension) => {
     productForm.value.unit = units[0]
   }
 })
+// Format price
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
+}
+
+// Format quantity
+function formatQuantity(qty: number): string {
+  return new Intl.NumberFormat('fa-IR', {
+    maximumFractionDigits: 5
+  }).format(qty)
+}
 </script>
 
 <style scoped>
@@ -618,21 +630,9 @@ watch(() => productForm.value.dimension, (newDimension) => {
   margin-top: 1rem;
 }
 
-.search-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-  font-family: inherit;
-}
+/* .search-input moved to global */
 
-.filter-select {
-  padding: 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-  font-family: inherit;
-  min-width: 150px;
-}
+/* .filter-select replaced by .form-select */
 
 .products-list {
   display: grid;
@@ -785,17 +785,9 @@ watch(() => productForm.value.dimension, (newDimension) => {
   /* Container for cost data */
 }
 
-.loading-cost {
-  text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-}
+/* .loading-cost replaced by .loading-message */
 
-.no-cost {
-  text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-}
+/* .no-cost replaced by .empty-state */
 
 .images-section {
   margin-top: 1.5rem;
@@ -863,29 +855,6 @@ watch(() => productForm.value.dimension, (newDimension) => {
   display: block;
 }
 
-.form-hint {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  display: block;
-}
-
-/* Reuse styles from MaterialsView */
-.error-message,
-.loading-message,
-.empty-state,
-.dialog-overlay,
-.dialog,
-.dialog-header,
-.dialog-body,
-.dialog-footer,
-.form-group,
-.form-input,
-.btn-primary,
-.btn-secondary,
-.btn-icon,
-.btn-danger,
-.btn-close {
-  /* Styles inherited from MaterialsView or global */
-}
+/* .form-hint moved to global */
+/* Reuse blocks removed */
 </style>

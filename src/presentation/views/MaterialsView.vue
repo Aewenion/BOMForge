@@ -156,6 +156,14 @@
             />
           </div>
           <div class="form-group">
+            <label>{{ $t('materials.dimension') }}</label>
+            <select v-model="materialForm.dimension" class="form-input">
+              <option value="mass">{{ $t('materials.mass') }}</option>
+              <option value="volume">{{ $t('materials.volume') }}</option>
+              <option value="count">{{ $t('materials.count') }}</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>{{ $t('materials.unit') }}</label>
             <select v-model="materialForm.unit" class="form-input">
               <option
@@ -167,13 +175,16 @@
               </option>
             </select>
           </div>
-          <div class="form-group">
-            <label>{{ $t('materials.dimension') }}</label>
-            <select v-model="materialForm.dimension" class="form-input">
-              <option value="mass">{{ $t('materials.mass') }}</option>
-              <option value="volume">{{ $t('materials.volume') }}</option>
-              <option value="count">{{ $t('materials.count') }}</option>
-            </select>
+          <div v-if="!isEditing" class="form-group">
+            <label>{{ $t('materials.price') }} ({{ $t('materials.toman') }})</label>
+            <input
+              v-model.number="materialForm.initialPrice"
+              type="number"
+              min="0"
+              step="1"
+              :placeholder="$t('materials.pricePlaceholder')"
+              class="form-input"
+            />
           </div>
         </div>
         <div class="dialog-footer">
@@ -247,7 +258,8 @@ const editingMaterialId = ref<string | null>(null)
 const materialForm = ref({
   name: '',
   unit: 'g',
-  dimension: 'mass' as 'mass' | 'volume' | 'count'
+  dimension: 'mass' as 'mass' | 'volume' | 'count',
+  initialPrice: 0
 })
 
 const priceForm = ref({
@@ -296,7 +308,8 @@ function openCreateDialog() {
   materialForm.value = {
     name: '',
     unit: unitsByDimension.mass[0],
-    dimension: 'mass'
+    dimension: 'mass',
+    initialPrice: 0
   }
   showMaterialDialog.value = true
 }
@@ -308,7 +321,8 @@ function openEditDialog(material: typeof store.materials[0]) {
   materialForm.value = {
     name: material.name,
     unit: material.unit,
-    dimension: material.dimension
+    dimension: material.dimension,
+    initialPrice: 0 // Not relevant for editing
   }
   showMaterialDialog.value = true
 }
@@ -319,7 +333,8 @@ function closeMaterialDialog() {
   materialForm.value = {
     name: '',
     unit: 'g',
-    dimension: 'mass'
+    dimension: 'mass',
+    initialPrice: 0
   }
 }
 
@@ -425,13 +440,7 @@ watch(() => materialForm.value.dimension, (newDimension) => {
   margin-top: 1rem;
 }
 
-.search-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-  font-family: inherit;
-}
+/* .search-input moved to global */
 
 .materials-list {
   display: grid;
@@ -464,35 +473,14 @@ watch(() => materialForm.value.dimension, (newDimension) => {
   gap: 0.5rem;
 }
 
-.badge {
-  padding: 0.25rem 0.75rem;
-  background: rgba(37, 99, 235, 0.1);
-  border-radius: 1rem;
-  font-size: 0.875rem;
-}
+/* .badge moved to global */
 
 .material-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.btn-icon {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: background 0.2s;
-}
-
-.btn-icon:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.btn-icon.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
+/* .btn-icon moved to global */
 
 .material-detail {
   padding: 1.5rem;
@@ -612,12 +600,7 @@ watch(() => materialForm.value.dimension, (newDimension) => {
   gap: 0.5rem;
 }
 
-.form-input {
-  padding: 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 0.5rem;
-  font-family: inherit;
-}
+/* .form-input moved to global */
 
 .dialog-footer {
   display: flex;
@@ -626,35 +609,11 @@ watch(() => materialForm.value.dimension, (newDimension) => {
   margin-top: 1.5rem;
 }
 
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  color: #6b7280;
-}
+/* .btn-close moved to global */
 
-.btn-close:hover {
-  color: #1f2937;
-}
+/* .empty-state moved to global */
 
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-}
+/* .error-message moved to global */
 
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.loading-message {
-  text-align: center;
-  padding: 2rem;
-}
+/* .loading-message moved to global */
 </style>

@@ -28,15 +28,7 @@ import { RouterView } from 'vue-router'
 </template>
 
 <style>
-:root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --bg-main: #f8fafc;
-  --text-main: #1e293b;
-  --white: #ffffff;
-  --glass: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
-}
+/* Global variables are now in src/presentation/style.css */
 
 .app-container {
   min-height: 100vh;
@@ -46,12 +38,12 @@ import { RouterView } from 'vue-router'
 
 .app-header {
   background: var(--primary);
-  color: var(--white);
+  color: var(--text-inverse);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .logo h1 {
@@ -62,7 +54,7 @@ import { RouterView } from 'vue-router'
 
 .subtitle {
   font-size: 0.8rem;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .main-nav {
@@ -71,11 +63,11 @@ import { RouterView } from 'vue-router'
 }
 
 .main-nav a {
-  color: var(--white);
+  color: var(--text-inverse);
   text-decoration: none;
   font-weight: 500;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   transition: background 0.2s;
 }
 

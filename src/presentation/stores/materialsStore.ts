@@ -42,6 +42,7 @@ export const useMaterialsStore = defineStore('materials', () => {
     name: string
     unit: string
     dimension: 'mass' | 'volume' | 'count'
+    initialPrice?: number
   }) {
     loading.value = true
     error.value = null

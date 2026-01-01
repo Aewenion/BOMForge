@@ -104,7 +104,7 @@ export class RequirementsExpander {
         const convertedQty = UnitConverter.convert(quantity, nestedProduct.unit)
 
         // Recursively expand nested product
-        const nestedRequirements = await this.expand(
+        const nestedRequirements = await RequirementsExpander.expand(
           nestedProduct,
           convertedQty.value,
           getBomLines,

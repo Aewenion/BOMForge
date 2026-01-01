@@ -1,5 +1,6 @@
 import { db } from '../database/Database'
 import type { BomVersion, BomLine, ProductDependency } from '../../domain/entities/Bom'
+import { dateToTimestamp, timestampToDate } from '../utils/dateConverter'
 
 /**
  * Repository for BOM-related entities
@@ -148,10 +149,10 @@ export class BomRepository {
   /**
    * Reorder lines (update sortOrder for multiple lines)
    */
-  async reorderLines(updates: { id: string; sortOrder: number }[]): Promise<void> {
+  async reorderLines(updates: { lineId: string; sortOrder: number }[]): Promise<void> {
     await db.transaction('rw', db.bomLines, async () => {
       for (const update of updates) {
-        await db.bomLines.update(update.id, { sortOrder: update.sortOrder })
+        await db.bomLines.update(update.lineId, { sortOrder: update.sortOrder })
       }
     })
   }
