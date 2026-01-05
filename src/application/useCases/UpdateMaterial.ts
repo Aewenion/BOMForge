@@ -48,6 +48,12 @@ export async function updateMaterial(
   // Update material
   await materialRepository.update(input.id, updates)
 
+  // If unit changed, update all BOM lines that use this material
+  if (updates.unit) {
+    const { bomRepository } = await import('../../infrastructure/repositories/BomRepository')
+    await bomRepository.updateUnitForLines('material', input.id, updates.unit)
+  }
+
   const updatedMaterial = await materialRepository.getById(input.id)
   if (!updatedMaterial) {
     throw new Error('Failed to retrieve updated material')

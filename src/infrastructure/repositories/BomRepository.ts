@@ -224,6 +224,26 @@ export class BomRepository {
       })
     }
   }
+
+  /**
+   * Update the unit for all BOM lines that use a specific input
+   */
+  async updateUnitForLines(inputType: 'material' | 'product', inputId: string, newUnit: string): Promise<void> {
+    // Find all lines using this input
+    const lines = await db.bomLines
+      .where({ inputType: inputType, inputId: inputId })
+      .toArray()
+      
+    // Update them in a transaction
+    await db.transaction('rw', db.bomLines, async () => {
+      for (const line of lines) {
+        // Only update if the unit is different to avoid unnecessary writes
+        if (line.unit !== newUnit) {
+          await db.bomLines.update(line.id, { unit: newUnit })
+        }
+      }
+    })
+  }
 }
 
 export const bomRepository = new BomRepository()

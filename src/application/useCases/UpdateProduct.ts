@@ -70,6 +70,12 @@ export async function updateProduct(
   // Update product
   await productRepository.update(input.id, updates)
 
+  // If unit changed, update all BOM lines that use this product
+  if (updates.unit) {
+    const { bomRepository } = await import('../../infrastructure/repositories/BomRepository')
+    await bomRepository.updateUnitForLines('product', input.id, updates.unit)
+  }
+
   const updatedProduct = await productRepository.getById(input.id)
   if (!updatedProduct) {
     throw new Error('Failed to retrieve updated product')

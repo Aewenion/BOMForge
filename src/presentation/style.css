@@ -214,14 +214,17 @@ button:disabled {
 .form-input,
 .form-select,
 .search-input {
-  padding: 0.625rem 0.875rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   background: white;
+  color: var(--text-main);
   transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
+  min-height: 48px;
+  /* Ensure 44px+ touch target */
 }
 
 .form-input:focus,
@@ -230,6 +233,12 @@ button:disabled {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
 }
 
 /* Utilities */

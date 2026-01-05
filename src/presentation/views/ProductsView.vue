@@ -245,34 +245,31 @@
             </select>
           </div>
           <div class="form-group">
-            <label>{{ $t('products.unit') }}</label>
-            <select v-model="productForm.unit" class="form-input">
-              <option
-                v-for="unit in unitsByDimension[productForm.dimension]"
-                :key="unit"
-                :value="unit"
+            <label>{{ $t('products.yieldQty') }}</label>
+            <div class="input-group">
+              <input
+                v-model.number="productForm.yieldQty"
+                type="number"
+                step="0.00001"
+                min="0.00001"
+                :placeholder="$t('products.yieldQtyPlaceholder')"
+                class="form-input"
+                style="border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none;"
+              />
+              <select 
+                v-model="productForm.unit" 
+                class="form-input"
+                style="width: 120px; flex-shrink: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; background-color: #f8fafc;"
               >
-                {{ unit }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>{{ $t('products.type') }}</label>
-            <select v-model="productForm.type" class="form-input">
-              <option value="middle">{{ $t('products.middle') }}</option>
-              <option value="final">{{ $t('products.final') }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>{{ $t('products.yieldQty') }} ({{ $t('products.recipeBasis') }})</label>
-            <input
-              v-model.number="productForm.yieldQty"
-              type="number"
-              step="0.00001"
-              min="0.00001"
-              :placeholder="$t('products.yieldQtyPlaceholder')"
-              class="form-input"
-            />
+                <option
+                  v-for="unit in unitsByDimension[productForm.dimension]"
+                  :key="unit"
+                  :value="unit"
+                >
+                  {{ unit }}
+                </option>
+              </select>
+            </div>
             <small class="form-hint">{{ $t('products.yieldQtyHint') }}</small>
           </div>
           <div class="form-group">
