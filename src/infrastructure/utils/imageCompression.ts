@@ -7,7 +7,7 @@
  */
 
 const MAX_IMAGE_SIZE = 1024 * 1024 // 1MB
-const THUMBNAIL_SIZE = 200 // 200x200px for thumbnails
+const THUMBNAIL_SIZE = 400 // 400x400px for better quality thumbnails
 const COMPRESSION_QUALITY = 0.8 // 80% quality for compression
 const MAX_DIMENSION = 1920 // Max width/height for standard images
 
@@ -66,36 +66,78 @@ function calculateDimensions(
 /**
  * Compress an image file to ≤1MB
  */
+/**
+ * Compress an image element to ≤1MB
+ */
+async function compressImageFromElement(img: HTMLImageElement, mimeType: string): Promise<Blob> {
+  const { width, height } = calculateDimensions(img.width, img.height, MAX_DIMENSION)
+  
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Failed to get canvas context')
+    
+  // Better quality scaling
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, 0, 0, width, height)
+  
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob)
+        } else {
+          reject(new Error('Compression failed'))
+        }
+      },
+      mimeType,
+      COMPRESSION_QUALITY
+    )
+  })
+}
+
+/**
+ * Generate a thumbnail from an image element
+ */
+async function generateThumbnailFromElement(img: HTMLImageElement): Promise<Blob> {
+  const { width, height } = calculateDimensions(img.width, img.height, THUMBNAIL_SIZE)
+  
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Failed to get canvas context')
+  
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, 0, 0, width, height)
+  
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob)
+        } else {
+          reject(new Error('Failed to generate thumbnail'))
+        }
+      },
+      'image/jpeg',
+      0.9 // Higher quality for thumbnails
+    )
+  })
+}
+
+/**
+ * Compress an image file to ≤1MB
+ */
 export async function compressImage(file: File): Promise<Blob> {
   try {
     const img = await loadImage(file)
-    const { width, height } = calculateDimensions(img.width, img.height, MAX_DIMENSION)
-    
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-    
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Failed to get canvas context')
-      
-    // Better quality scaling
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(img, 0, 0, width, height)
-    
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob)
-          } else {
-            reject(new Error('Compression failed'))
-          }
-        },
-        file.type,
-        COMPRESSION_QUALITY
-      )
-    })
+    return await compressImageFromElement(img, file.type)
   } catch (error) {
     throw error // Propagate error
   }
@@ -107,32 +149,7 @@ export async function compressImage(file: File): Promise<Blob> {
 export async function generateThumbnail(file: File): Promise<Blob> {
   try {
     const img = await loadImage(file)
-    const { width, height } = calculateDimensions(img.width, img.height, THUMBNAIL_SIZE)
-    
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-    
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Failed to get canvas context')
-    
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'medium'
-    ctx.drawImage(img, 0, 0, width, height)
-    
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob)
-          } else {
-            reject(new Error('Failed to generate thumbnail'))
-          }
-        },
-        'image/jpeg',
-        0.7 // Lower quality for thumbnails
-      )
-    })
+    return await generateThumbnailFromElement(img)
   } catch (error) {
     throw error
   }
@@ -152,16 +169,25 @@ export async function processImage(file: File): Promise<{
     throw new Error('File must be an image')
   }
 
-  const [compressed, thumbnail] = await Promise.all([
-    compressImage(file),
-    generateThumbnail(file)
-  ])
+  // Load image once
+  const img = await loadImage(file)
 
-  return {
-    compressed,
-    thumbnail,
-    mimeType: file.type,
-    size: compressed.size
+  try {
+    // Process both from the same image element
+    const [compressed, thumbnail] = await Promise.all([
+      compressImageFromElement(img, file.type),
+      generateThumbnailFromElement(img)
+    ])
+
+    return {
+      compressed,
+      thumbnail,
+      mimeType: file.type,
+      size: compressed.size
+    }
+  } finally {
+    // Help GC? The img variable will go out of scope, but setting src to empty might help in some browsers
+    img.src = ''
   }
 }
 

@@ -48,10 +48,11 @@
       >
         <div class="product-thumbnail">
           <img
-            v-if="product.images.length > 0 && store.getThumbnailUrl(product.images[0].id)"
-            :src="store.getThumbnailUrl(product.images[0].id) || ''"
+            v-if="product.images.length > 0"
+            :src="store.getImageUrl(product.images[0].id) || store.getThumbnailUrl(product.images[0].id) || ''"
             :alt="product.name"
             class="thumbnail-img"
+            loading="lazy"
           />
           <div v-else class="thumbnail-placeholder">📦</div>
         </div>
@@ -93,131 +94,7 @@
       </button>
     </div>
 
-    <!-- Product Detail -->
-    <div v-if="store.selectedProduct" class="product-detail glass-card">
-      <div class="detail-header">
-        <h3>{{ store.selectedProduct.name }}</h3>
-        <button @click="store.clearSelection" class="btn-close">×</button>
-      </div>
-
-      <div class="detail-info">
-        <div class="info-row">
-          <span class="label">{{ $t('products.type') }}:</span>
-          <span class="value">{{ store.selectedProduct.type === 'middle' ? $t('products.middle') : $t('products.final') }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">{{ $t('products.unit') }}:</span>
-          <span class="value">{{ store.selectedProduct.unit }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">{{ $t('products.dimension') }}:</span>
-          <span class="value">{{ store.selectedProduct.dimension }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">{{ $t('products.yieldQty') }}:</span>
-          <span class="value">{{ store.selectedProduct.yieldQty }} {{ store.selectedProduct.unit }}</span>
-        </div>
-        <div v-if="store.selectedProduct.description" class="info-row">
-          <span class="label">{{ $t('products.description') }}:</span>
-          <span class="value">{{ store.selectedProduct.description }}</span>
-        </div>
-      </div>
-
-      <!-- Cost Breakdown Section -->
-      <div v-if="store.selectedProduct" class="cost-section">
-        <div class="section-header">
-          <h4>{{ $t('products.costBreakdown') }}</h4>
-          <button @click="loadCost" class="btn-secondary btn-sm" :disabled="loadingCost">
-            {{ loadingCost ? $t('products.loading') : $t('products.recalculate') }}
-          </button>
-        </div>
-        <div v-if="loadingCost" class="loading-message">
-          {{ $t('products.loading') }}
-        </div>
-        <div v-else-if="costBreakdown" class="cost-content">
-        <div class="cost-summary">
-          <div class="total-cost">
-            <span class="label">{{ $t('products.totalCost') }}:</span>
-            <span class="value">{{ formatPrice(costBreakdown.totalCost) }}</span>
-          </div>
-          <div class="cost-per-unit">
-            <span class="label">{{ $t('products.costPerUnit') }}:</span>
-            <span class="value">
-              {{ formatPrice(Math.round(costBreakdown.totalCost / (store.selectedProduct?.yieldQty || 1))) }}
-              / {{ store.selectedProduct?.unit }}
-            </span>
-          </div>
-        </div>
-        <div v-if="costBreakdown.requirements.length > 0" class="cost-details">
-          <h5>{{ $t('products.materialRequirements') }}</h5>
-          <div class="requirements-list">
-            <div
-              v-for="req in costBreakdown.requirements"
-              :key="req.materialId"
-              class="requirement-item"
-            >
-              <div class="requirement-info">
-                <span class="material-name">{{ req.materialName }}</span>
-                <span class="requirement-qty">
-                  {{ formatQuantity(req.totalQty) }} {{ req.unit }}
-                </span>
-              </div>
-              <div class="requirement-cost">
-                {{ formatPrice(req.costContribution) }}
-                <span class="cost-per-unit">
-                  ({{ formatPrice(req.pricePerUnit) }} / {{ req.unit }})
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
-        <div v-else class="empty-state">
-          <p>{{ $t('products.noCostData') }}</p>
-          <button @click="loadCost" class="btn-secondary btn-sm" style="margin-top: 0.5rem;">
-            {{ $t('products.calculateCost') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Images Section -->
-      <div class="images-section">
-        <div class="images-header">
-          <h4>{{ $t('products.images') }} ({{ store.selectedProduct.images.length }}/3)</h4>
-          <button
-            v-if="store.selectedProduct.images.length < 3"
-            @click="openImageUploadDialog"
-            class="btn-secondary"
-          >
-            {{ $t('products.addImage') }}
-          </button>
-        </div>
-        <div v-if="store.selectedProduct.images.length > 0" class="images-grid">
-          <div
-            v-for="image in store.selectedProduct.images"
-            :key="image.id"
-            class="image-item"
-          >
-            <img
-              v-if="store.getImageUrl(image.id)"
-              :src="store.getImageUrl(image.id) || ''"
-              :alt="store.selectedProduct.name"
-              class="product-image"
-            />
-            <button
-              @click="confirmDeleteImage(image.id)"
-              class="image-delete-btn"
-              :title="$t('products.deleteImage')"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-        <div v-else class="no-images">
-          {{ $t('products.noImages') }}
-        </div>
-      </div>
-    </div>
+    <!-- Product Detail Removed (Use ProductDetailView) -->
 
     <!-- Create/Edit Product Dialog -->
     <div v-if="showProductDialog" class="dialog-overlay" @click.self="closeProductDialog">
@@ -246,31 +123,27 @@
           </div>
           <div class="form-group">
             <label>{{ $t('products.yieldQty') }}</label>
-            <div class="input-group">
-              <input
-                v-model.number="productForm.yieldQty"
-                type="number"
-                step="0.00001"
-                min="0.00001"
-                :placeholder="$t('products.yieldQtyPlaceholder')"
-                class="form-input"
-                style="border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none;"
-              />
-              <select 
-                v-model="productForm.unit" 
-                class="form-input"
-                style="width: 120px; flex-shrink: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; background-color: #f8fafc;"
-              >
-                <option
-                  v-for="unit in unitsByDimension[productForm.dimension]"
-                  :key="unit"
-                  :value="unit"
-                >
-                  {{ unit }}
-                </option>
-              </select>
-            </div>
+            <input
+              v-model.number="productForm.yieldQty"
+              type="number"
+              step="0.00001"
+              min="0.00001"
+              :placeholder="$t('products.yieldQtyPlaceholder')"
+              class="form-input"
+            />
             <small class="form-hint">{{ $t('products.yieldQtyHint') }}</small>
+          </div>
+          <div class="form-group">
+            <label>{{ $t('products.unit') }}</label>
+            <select v-model="productForm.unit" class="form-input">
+              <option
+                v-for="unit in unitsByDimension[productForm.dimension]"
+                :key="unit"
+                :value="unit"
+              >
+                {{ unit }}
+              </option>
+            </select>
           </div>
           <div class="form-group">
             <label>{{ $t('products.description') }}</label>
@@ -293,66 +166,26 @@
       </div>
     </div>
 
-    <!-- Image Upload Dialog -->
-    <div v-if="showImageDialog" class="dialog-overlay" @click.self="closeImageDialog">
-      <div class="dialog glass-card">
-        <div class="dialog-header">
-          <h3>{{ $t('products.addImage') }}</h3>
-          <button @click="closeImageDialog" class="btn-close">×</button>
-        </div>
-        <div class="dialog-body">
-          <div class="form-group">
-            <label>{{ $t('products.selectImage') }}</label>
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              @change="handleFileSelect"
-              class="form-input"
-            />
-            <small class="form-hint">{{ $t('products.imageHint') }}</small>
-          </div>
-          <div v-if="imagePreview" class="image-preview">
-            <img :src="imagePreview" alt="Preview" class="preview-img" />
-          </div>
-        </div>
-        <div class="dialog-footer">
-          <button @click="closeImageDialog" class="btn-secondary">
-            {{ $t('products.cancel') }}
-          </button>
-          <button @click="uploadImage" class="btn-primary" :disabled="!selectedFile || uploading">
-            {{ uploading ? $t('products.uploading') : $t('products.upload') }}
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useProductsStore } from '../stores/productsStore'
 import { UNITS_BY_DIMENSION } from '../../domain/services/UnitConverter'
-import type { CostBreakdown } from '../../domain/services/CostCalculator'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const store = useProductsStore()
 
 const searchQuery = ref('')
 const filterType = ref<'middle' | 'final' | ''>('')
 const showProductDialog = ref(false)
-const showImageDialog = ref(false)
 const isEditing = ref(false)
 const editingProductId = ref<string | null>(null)
-const selectedFile = ref<File | null>(null)
-const imagePreview = ref<string | null>(null)
-const uploading = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
-const costBreakdown = ref<CostBreakdown | null>(null)
-const loadingCost = ref(false)
 
 const productForm = ref({
   type: 'final' as 'middle' | 'final',
@@ -411,37 +244,9 @@ function handleFilter() {
 
 // Select product
 async function selectProduct(id: string) {
-  await store.selectProduct(id)
-  // Show cached cost if available, then load fresh
-  if (store.selectedProduct?.computedCostMaterialsOnly !== undefined) {
-    // We'll load fresh cost, but could show cached value first
-  }
-  await loadCost()
+  router.push({ name: 'product-detail', params: { id } })
 }
 
-// Load cost breakdown
-async function loadCost() {
-  if (!store.selectedProduct) return
-  
-  loadingCost.value = true
-  try {
-    costBreakdown.value = await store.loadCostBreakdown(store.selectedProduct.id)
-  } catch (err) {
-    // Error handled by store
-    costBreakdown.value = null
-  } finally {
-    loadingCost.value = false
-  }
-}
-
-// Watch for product selection changes
-watch(() => store.selectedProduct, (newProduct) => {
-  if (newProduct) {
-    loadCost()
-  } else {
-    costBreakdown.value = null
-  }
-})
 
 // Open create dialog
 function openCreateDialog() {
@@ -511,101 +316,6 @@ function confirmDelete(product: typeof store.products[0]) {
   }
 }
 
-// Open image upload dialog
-function openImageUploadDialog() {
-  selectedFile.value = null
-  imagePreview.value = null
-  showImageDialog.value = true
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
-}
-
-// Close image dialog
-function closeImageDialog() {
-  showImageDialog.value = false
-  selectedFile.value = null
-  imagePreview.value = null
-  if (imagePreview.value) {
-    URL.revokeObjectURL(imagePreview.value)
-  }
-}
-
-// Handle file select
-function handleFileSelect(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    selectedFile.value = file
-    // Create preview
-    if (imagePreview.value) {
-      URL.revokeObjectURL(imagePreview.value)
-    }
-    imagePreview.value = URL.createObjectURL(file)
-  }
-}
-
-// Upload image
-async function uploadImage() {
-  if (!selectedFile.value || !store.selectedProduct) return
-
-  uploading.value = true
-  try {
-    await store.addImage(store.selectedProduct.id, selectedFile.value)
-    closeImageDialog()
-  } catch (err) {
-    // Error is handled by store
-  } finally {
-    uploading.value = false
-  }
-}
-
-// Confirm delete image
-function confirmDeleteImage(imageId: string) {
-  if (confirm(t('products.confirmDeleteImage'))) {
-    store.removeImage(imageId)
-  }
-}
-
-// Load template
-async function loadTemplate(templateProductId: string) {
-  const templateProduct = await store.products.find(p => p.id === templateProductId) ||
-    await (async () => {
-      const { productRepository } = await import('../../infrastructure/repositories/ProductRepository')
-      return await productRepository.getById(templateProductId)
-    })()
-  
-  if (templateProduct) {
-    productForm.value = {
-      type: templateProduct.type,
-      name: `${templateProduct.name} (از قالب)`,
-      unit: templateProduct.unit,
-      dimension: templateProduct.dimension,
-      yieldQty: templateProduct.yieldQty,
-      description: templateProduct.description || ''
-    }
-    showProductDialog.value = true
-  }
-}
-
-// Watch dimension change to update unit
-watch(() => productForm.value.dimension, (newDimension) => {
-  const units = unitsByDimension[newDimension]
-  if (units.length > 0 && !units.includes(productForm.value.unit)) {
-    productForm.value.unit = units[0]
-  }
-})
-// Format price
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
-}
-
-// Format quantity
-function formatQuantity(qty: number): string {
-  return new Intl.NumberFormat('fa-IR', {
-    maximumFractionDigits: 5
-  }).format(qty)
-}
 </script>
 
 <style scoped>

@@ -27,6 +27,7 @@
             <option value="updated">{{ $t('gallery.sortByUpdated') }}</option>
             <option value="name">{{ $t('gallery.sortByName') }}</option>
             <option value="cost">{{ $t('gallery.sortByCost') }}</option>
+            <option value="price">{{ $t('gallery.sortByPrice') }}</option>
           </select>
           <select v-model="sortOrder" class="filter-select" @change="applyFilters">
             <option value="desc">{{ $t('gallery.descending') }}</option>
@@ -120,7 +121,7 @@
         <button @click="editProduct" class="menu-item">
           {{ $t('gallery.edit') }}
         </button>
-        <button @click="duplicateProductHandler" class="menu-item">
+        <button @click="duplicateProduct" class="menu-item">
           {{ $t('gallery.duplicate') }}
         </button>
         <button @click="duplicateWithBom" class="menu-item">
@@ -150,7 +151,7 @@ const router = useRouter()
 const productsStore = useProductsStore()
 
 const searchQuery = ref('')
-const sortBy = ref<'updated' | 'name' | 'cost'>('updated')
+const sortBy = ref<'updated' | 'name' | 'cost' | 'price'>('updated')
 const sortOrder = ref<'asc' | 'desc'>('desc')
 const costFilter = ref('')
 const loading = ref(false)
@@ -192,7 +193,7 @@ const filteredProducts = computed(() => {
 
     if (sortBy.value === 'name') {
       comparison = a.name.localeCompare(b.name, 'fa')
-    } else if (sortBy.value === 'cost') {
+    } else if (sortBy.value === 'cost' || sortBy.value === 'price') {
       const costA = a.computedCostMaterialsOnly || 0
       const costB = b.computedCostMaterialsOnly || 0
       comparison = costA - costB
@@ -233,7 +234,7 @@ function applyFilters() {
 }
 
 function selectProduct(id: string) {
-  router.push({ name: 'products', query: { id } })
+  router.push({ name: 'product-detail', params: { id } })
 }
 
 function getThumbnailUrl(imageId: string): string | null {
@@ -261,7 +262,7 @@ function closeActionsMenu() {
 
 function viewProduct() {
   if (selectedProductForActions.value) {
-    router.push({ name: 'products', query: { id: selectedProductForActions.value.id } })
+    router.push({ name: 'product-detail', params: { id: selectedProductForActions.value.id } })
   }
   closeActionsMenu()
 }

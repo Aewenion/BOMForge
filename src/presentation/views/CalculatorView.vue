@@ -31,25 +31,27 @@
 
         <div v-if="selectedProduct" class="form-group">
           <label>{{ $t('calculator.targetQuantity') }}</label>
-          <div class="quantity-input-group">
-            <input
-              v-model.number="targetQuantity"
-              type="number"
-              step="0.00001"
-              min="0.00001"
-              class="form-input"
-              :placeholder="$t('calculator.quantityPlaceholder')"
-            />
-            <select v-model="targetUnit" class="form-select unit-select">
-              <option
-                v-for="unit in availableUnits"
-                :key="unit"
-                :value="unit"
-              >
-                {{ unit }}
-              </option>
-            </select>
-          </div>
+          <input
+            v-model.number="targetQuantity"
+            type="number"
+            step="0.00001"
+            min="0.00001"
+            class="form-input"
+            :placeholder="$t('calculator.quantityPlaceholder')"
+          />
+        </div>
+
+        <div v-if="selectedProduct" class="form-group">
+          <label>{{ $t('calculator.unit') }}</label>
+          <select v-model="targetUnit" class="form-select unit-select">
+            <option
+              v-for="unit in availableUnits"
+              :key="unit"
+              :value="unit"
+            >
+              {{ unit }}
+            </option>
+          </select>
           <small class="form-hint">
             {{ $t('calculator.productYield') }}: {{ selectedProduct.yieldQty }} {{ selectedProduct.unit }}
           </small>
@@ -253,14 +255,7 @@ function formatQuantity(qty: number): string {
   gap: 1rem;
 }
 
-.quantity-input-group {
-  display: flex;
-  gap: 0.5rem;
-}
 
-.quantity-input-group .form-input {
-  flex: 1;
-}
 
 /* .unit-select replaced by .form-select */
 
